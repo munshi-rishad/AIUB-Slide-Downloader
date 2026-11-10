@@ -20,7 +20,7 @@
     NUMBERING: true,                             // false = keep the original file names (no 01 - , 02 - )
     MAX_FILE_MB: 300,                            // Teams files bigger than this (meeting recordings...) are skipped
     ORDER: 'content',                            // 'content' = lectures/modules/labs in their natural order; 'time' = pure upload time
-    REPO: 'munshi-rishad/AIUB-Smart-Slide-Downloader', // GitHub repository (only used for the "Report problem" link)
+    REPO: 'munshi-rishad/AIUB-Slide-Downloader', // GitHub repository (only used for the "Report problem" link)
     FILE_SCHEME: 1,                              // raise ONLY when a new version changes the CONTENT of saved files:
                                                  // every file saved with a lower scheme is then fetched again (the old copy goes to "_Old versions")
     OLD_DIR: '_Old versions',                    // replaced copies are moved here (inside the AIUB folder), never deleted
