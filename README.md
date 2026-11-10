@@ -7,7 +7,7 @@ A Chrome extension for AIUB students. When you open the portal dashboard, it sav
 ## Clone the Project
 
 ```bash
-git clone https://github.com/munshi-rishad/AIUB-Smart-Slide-Downloader.git
+git clone https://github.com/munshi-rishad/AIUB-Slide-Downloader.git
 ```
 
 ## Run It (Load unpacked)
