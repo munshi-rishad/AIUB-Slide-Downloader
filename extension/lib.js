@@ -1,5 +1,5 @@
 /* ==========================================================================
-   AIUB Smart Slide Downloader - shared helpers (pure functions, no browser APIs)
+   AIUB Slide Downloader - shared helpers (pure functions, no browser APIs)
    Loaded by: panel.js (content script), background.js (service worker) and tests/lib.test.js (node).
    Everything that can be unit-tested lives here. All tunable numbers are in CFG.
    ========================================================================== */
@@ -16,17 +16,14 @@
     SIM_WITH_SIZE: 0.55,                         // ...or this similar when the sizes match
     COURSE_SIM: 0.85,
     COURSE_SIM_LOOSE: 0.6,                       // second chance for a course that found no class (same semester only)
+    ROOT_DIR: 'AIUB',                            // the folder all files are saved in. Always exactly these capital letters, never "aiub".
     NUMBERING: true,                             // false = keep the original file names (no 01 - , 02 - )
     MAX_FILE_MB: 300,                            // Teams files bigger than this (meeting recordings...) are skipped
-    DEV_AUTORELOAD: true,                        // reload the extension by itself when its files change (developer convenience)
     ORDER: 'content',                            // 'content' = lectures/modules/labs in their natural order; 'time' = pure upload time
-    AUTO_UPDATE: true,                           // look for a newer version on GitHub (needs the helper to install it)
-    ASK_BEFORE_UPDATE: true,                     // true = the person is asked first ("Update now" / "Later"); false = install by itself
-    UPDATE_REPO: 'munshi-rishad/AIUB-Smart-Slide-Downloader',    // the GitHub repository the updates come from
-    UPDATE_BRANCH: 'main',
+    REPO: 'munshi-rishad/AIUB-Smart-Slide-Downloader', // GitHub repository (only used for the "Report problem" link)
     FILE_SCHEME: 1,                              // raise ONLY when a new version changes the CONTENT of saved files:
                                                  // every file saved with a lower scheme is then fetched again (the old copy goes to "_Old versions")
-    OLD_DIR: '_Old versions',                    // replaced copies are moved here (inside Desktop/AIUB), never deleted
+    OLD_DIR: '_Old versions',                    // replaced copies are moved here (inside the AIUB folder), never deleted
     UPPERCASE: true,                             // every saved file name in CAPITAL LETTERS
     UNZIP: true,                                 // zip files are unpacked: their contents are saved (and numbered) as normal files
     SOURCE_TAG: true,                            // add "(Portal)" / "(Teams)" at the end of every file name

@@ -1,28 +1,21 @@
 {
   "manifest_version": 3,
-  "name": "AIUB Smart Slide Downloader",
-  "version": "11.2",
-  "description": "Downloads only new or missing slides/notes from the AIUB portal and your Microsoft Teams classes into Desktop/AIUB/<Course>/, numbered in course order, without duplicates. Asks before installing a new version.",
+  "name": "AIUB Slide Downloader",
+  "version": "12.0",
+  "description": "Saves new slides and notes from the AIUB portal and your Teams classes into your AIUB folder, numbered in order. Unofficial.",
+  "minimum_chrome_version": "122",
   "icons": {
     "16": "icon16.png",
     "48": "icon48.png",
     "128": "icon128.png"
   },
   "permissions": [
-    "downloads",
     "scripting",
-    "activeTab",
-    "nativeMessaging",
-    "storage",
-    "alarms",
-    "notifications"
+    "storage"
   ],
   "host_permissions": [
     "https://portal.aiub.edu/*",
-    "https://aiubedu60714.sharepoint.com/*",
-    "https://raw.githubusercontent.com/*",
-    "https://github.com/*",
-    "https://codeload.github.com/*"
+    "https://aiubedu60714.sharepoint.com/*"
   ],
   "background": {
     "service_worker": "background.js"
@@ -34,6 +27,7 @@
       ],
       "js": [
         "lib.js",
+        "disk.js",
         "panel.js"
       ],
       "run_at": "document_idle"
@@ -50,11 +44,10 @@
     }
   ],
   "action": {
-    "default_title": "AIUB Smart Slide Downloader - check for new files now",
+    "default_title": "AIUB Slide Downloader - check for new files now",
     "default_icon": {
       "16": "icon16.png",
       "48": "icon48.png"
     }
-  },
-  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAp4anhXkrWEm5/iH3lHpJWzNjs3cNeCJ9i0n3jNtL8J7GZOO00TTuAUtpXEFLtnTJ88YfP+0d2EYFdGAUUAR9YCyn1wztkZt6WCeaktXsrbTps0xR7jJVn2U1XA0ZiBGsV78ODRJIt84Ys7SlIYzTb6vg44naJnbf4cAg5ObU/KVoWZqCsnEQVycbCZkGbS28G/PBkhqTvC4NDMT92gdMoCcStwU+6Pb05Vg+Eo78jS8bEdkaaQsjVVRZS8s+KBWgTSkYvJjbwQrGnunb84ouKNuKxJX07L2DzWjPk5UeZyAKciVYVYjWCLtbibd/mbczbJwGhGn0jNZ06lsgSkUZEQIDAQAB"
+  }
 }

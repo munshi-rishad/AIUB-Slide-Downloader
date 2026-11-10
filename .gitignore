@@ -1,2 +1,2 @@
-com.aiub.downloader.json
-*.part
+dist/
+node_modules/

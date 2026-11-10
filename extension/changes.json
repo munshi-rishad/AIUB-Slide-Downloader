@@ -1,4 +1,10 @@
 {
+  "12.0": [
+    "Now a Chrome Web Store extension: no Setup.bat and no helper program",
+    "You choose where your files go (Desktop, D: drive, any folder); an AIUB folder is made there. \"Change folder\" moves to another place any time",
+    "Works like before: deleted files and folders come back, numbering stays in course order, edited files go to \"_Old versions\"",
+    "Updates come from the Chrome Web Store automatically"
+  ],
   "11.2": [
     "Files teachers attach to Teams Assignments are downloaded too (folder \"Assignment files\")",
     "Private channel files are downloaded (folder named like the channel)",

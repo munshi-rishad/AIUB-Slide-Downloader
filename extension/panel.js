@@ -40,8 +40,9 @@
 .bar{display:none;height:3px;margin-top:5px;background:#e3eaf5;border-radius:4px;overflow:hidden}
 .bar div{height:100%;width:0;background:linear-gradient(90deg,#1767c7,#27c27a);transition:width .25s}
 .er{display:none;margin-top:4px;font-size:10px;color:#a32121;line-height:1.3}
-.ft{display:flex;align-items:center;justify-content:space-between;gap:6px;padding:3px 2px 0}
-.m{font-size:11px;font-weight:600;color:#0a3374;line-height:1.35}
+.ft{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:6px;padding:3px 2px 0}
+.bg{flex:none;display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:600;color:#3a5675;text-decoration:none;padding:2px 4px;border-radius:6px}.bg:hover{background:#e6edf8;color:#0a3374}.bg svg{width:13px;height:13px}
+.m{flex:1;font-size:11px;font-weight:600;color:#0a3374;line-height:1.35}
 .rt{display:none;flex:none;border:0;border-radius:7px;padding:4px 9px;background:#0a3374;color:#fff;font-size:11px;font-weight:600;cursor:pointer}
 .u{display:none;background:#eaf2ff;border:1px solid #b8d0f5;border-radius:9px;padding:8px 9px;margin-bottom:6px;font-size:11px;line-height:1.45;color:#0a3374}
 .u.ok{background:#e6f7ee;border-color:#a9dfc0;color:#13703a}
@@ -86,20 +87,20 @@
       <div class="pa"><button class="ok" id="ok" disabled>OK</button><button class="cn" id="cn">Cancel</button></div>
     </div>
     <div id="cs"></div>
-    <div class="ft"><span class="m" id="m"></span><span class="bt"><button class="ch" id="ch">Old semesters</button><button class="rt" id="rt">Retry</button></span></div>
+    <div class="ft"><a class="bg" id="bg" href="https://najiat-rishad.pages.dev/" target="_blank" rel="noopener noreferrer" title="Found a bug or an error? Open my website and contact me"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3.2 3 14.8 0 18M12 3c-3 3.2-3 14.8 0 18"/></svg>Found a bug? Contact me</a><span class="m" id="m"></span><span class="bt"><button class="ch" id="fd" style="display:none" title="Save your files somewhere else (Desktop, D: drive …)">Change folder</button><button class="ch" id="ch">Old semesters</button><button class="rt" id="rt">Retry</button></span></div>
   </div>
 </div>`;
   document.documentElement.appendChild(host);
   const $ = id => root.getElementById(id);
   let closeT = null;
   let semChanged = false, semOrig = -1, picked = null, pickList = [], lastCourses = null, lastSem = null;
-  let hovered = false, closePending = false, updAsk = false, updShown = '', justUpd = null;
+  let hovered = false, closePending = false, justUpd = null;
   const closeNow = () => { clearTimeout(closeT); closePending = false; restoreSem(); $('p').classList.add('out'); setTimeout(() => host.remove(), 280); };
   const stopClose = () => { clearTimeout(closeT); closePending = false; };
   // auto-close after `ms`, but never while the cursor is on the panel; it re-arms when the cursor leaves
   const armClose = ms => {
     clearTimeout(closeT); closePending = true;
-    closeT = setTimeout(() => { if (hovered || updAsk || $('p').matches(':hover')) return; closeNow(); }, ms);
+    closeT = setTimeout(() => { if (hovered || $('p').matches(':hover')) return; closeNow(); }, ms);
   };
   $('x').onclick = closeNow;
   $('p').addEventListener('mouseenter', () => { hovered = true; clearTimeout(closeT); });   // cursor on the panel: keep it open
@@ -226,7 +227,7 @@
     return viaIframe(c.href);
   }
 
-  // ---------- Helper (Desktop/AIUB) ----------
+  // ---------- Messages to the background worker ----------
   let staleCtx = false;
   const send = async m => {
     try { return await chrome.runtime.sendMessage(m); }
@@ -237,36 +238,41 @@
       return { ok: false, err: e.message };
     }
   };
-  function gate(err, old) {
+  // ---------- The AIUB folder on the computer (disk.js: Chrome's File System Access, no program to install) ----------
+  // Like the old Windows helper: the extension sees which files are REALLY in the folder, saves, renames and moves them.
+  function folderGate(st) {   // -> 'again' | 'skip'
     return new Promise(resolve => {
-      const zip = `https://github.com/${CFG.UPDATE_REPO}/archive/refs/heads/${CFG.UPDATE_BRANCH}.zip`;
-      sub(old ? 'One-time update needed' : 'One-time setup needed');
-      const g = $('g'); g.style.display = 'block';
-      const stale = /context invalidated/i.test(err || '');
-      g.innerHTML = stale
-        ? '<b>Extension was just updated.</b><br>Please refresh this page (F5).'
-        : old
-          ? '<b>One-time update needed (1 minute)</b><br>This version needs the new helper:<br>1. Click <b>Download latest</b> and extract the zip.<br>2. Double-click <b>Setup.bat</b> inside the new folder<br>(not the old one you downloaded before).<br>3. Press <b>Check again</b>.<br>'
-          : '<b>Setup needed (one time, 1 minute)</b><br>1. Click <b>Download latest</b> and extract the zip (skip this if you already have the folder).<br>2. Double-click <b>Setup.bat</b> in it.<br>3. Press <b>Check again</b>.<br>';
-      if (!stale) {
-        const dl = document.createElement('button'); dl.className = 'go'; dl.textContent = 'Download latest';
-        const go = document.createElement('button'); go.className = 'go'; go.textContent = 'Check again';
-        const no = document.createElement('button'); no.className = 'no'; no.textContent = 'Skip (use Downloads)';
-        g.append(dl, go, no);
-        if (err && !old) { const e = document.createElement('div'); e.className = 'ge'; e.textContent = 'Not ready yet: ' + err; g.appendChild(e); }
-        dl.onclick = () => window.open(zip, '_blank', 'noopener');
-        go.onclick = () => { g.style.display = 'none'; sub('Checking…'); resolve('again'); };
-        no.onclick = () => { g.style.display = 'none'; resolve('skip'); };
-      }
+      const g = $('g'); g.style.display = 'block'; stopClose();
+      const T = {
+        none: ['One-time setup', '<b>Where should your course files be saved?</b><br>1. Press <b>Choose folder</b>.<br>2. Go to your <b>Desktop</b> (or the <b>D: drive</b>, …), click <b>New folder</b> and name it <b>AIUB</b>.<br>3. Select that <b>AIUB</b> folder, press <b>Select folder</b>, then <b>Edit files</b> / <b>Allow</b>.<br><small>Chrome does not allow the Desktop, Documents, Downloads or a whole drive itself (“contains system files”): always pick a folder inside them. You can change it later with <b>Change folder</b>.</small><br>'],
+        prompt: ['Allow folder access', '<b>Allow access to your AIUB folder</b><br>Chrome asks again after it was restarted. Press <b>Allow</b>, then choose <b>Allow on every visit</b> so it is not asked again.<br>'],
+        missing: ['AIUB folder not found', '<b>Your AIUB folder was not found</b><br>It was deleted, renamed or moved. Press <b>Choose folder</b> and select it again (or make a new <b>AIUB</b> folder inside your Desktop with <b>New folder</b>).<br>'],
+      }[st] || ['One-time setup', ''];
+      sub(T[0]); g.innerHTML = T[1];
+      const btn = (label, cls, fn) => { const b = document.createElement('button'); b.className = cls; b.textContent = label; b.onclick = fn; g.appendChild(b); return b; };
+      const err = document.createElement('div'); err.className = 'ge';
+      const show = e => { if (e && e.name === 'AbortError') return; err.textContent = 'Not ready yet: ' + ((e && e.message) || e); g.appendChild(err); };
+      const done = v => { g.style.display = 'none'; sub('Checking…'); resolve(v); };
+      if (st === 'prompt') btn('Allow', 'go', async () => { try { if ((await Disk.allow()) === 'ready') done('again'); else show(new Error('access was not allowed')); } catch (e) { show(e); } });
+      btn(st === 'prompt' ? 'Choose another folder' : 'Choose folder', st === 'prompt' ? 'no' : 'go', async () => { try { await Disk.choose(); done('again'); } catch (e) { show(e); } });
     });
   }
-  async function getHave(folders) {   // -> { folder: [names] } or null (fallback to Chrome Downloads)
-    for (;;) {
-      const r = await send({ cmd: 'listall', folders });
-      if (r && r.ok && (r.ver || 1) >= 3) return r.map;
-      if (await gate(r && r.ok ? '' : (r && r.err), !!(r && r.ok)) === 'skip') return null;   // r.ok but ver < 3: the helper is from an older version
+  async function getHave(folders) {   // -> { folder: [names] }
+    for (let i = 0; ; i++) {
+      const st = await Disk.state();
+      if (st === 'ready') {
+        try { return await Disk.listAll(folders); }
+        catch (e) { if (i > 2) throw e; continue; }   // the folder vanished in between: state() says what to do
+      }
+      if (st === 'unsupported') throw new Error('this Chrome cannot save into a folder. Please update Google Chrome (version 122 or newer)');
+      await folderGate(st);
     }
   }
+  $('fd').onclick = async () => {   // choose another place for the AIUB folder, then check again (files already in the new place are not downloaded twice)
+    if (window.__aiubRunning) return;
+    try { await Disk.choose(); } catch (e) { if (e && e.name !== 'AbortError') msg('Not ready yet: ' + e.message, '#c0392b'); return; }
+    $('rt').onclick();
+  };
   // ---------- Teams (the background worker reads SharePoint with the person's own Chrome sign-in) ----------
   function ask(html, buttons) {   // yellow box with buttons -> resolves with the chosen value ('open' buttons keep it open)
     return new Promise(resolve => {
@@ -427,45 +433,22 @@
     for (const id of ids) { const o = idx[id] || {}; idx[id] = { p, s: sig || o.s || '', k: CFG.FILE_SCHEME, t: Date.now() }; }
   }
 
-  // ---------- New version: ask the person ----------
+  // ---------- After an update: what is new (the Chrome Web Store installs updates by itself) ----------
   function notesList(notes) {
     const ul = document.createElement('ul');
-    (notes || []).forEach(n => (n.items || []).slice(0, 6).forEach(t => { const li = document.createElement('li'); li.textContent = String(t).slice(0, 160); ul.appendChild(li); }));
+    (notes || []).forEach(n => (n.items || []).slice(0, 6).forEach(t => { const li = document.createElement('li'); li.textContent = String(t).slice(0, 200); ul.appendChild(li); }));
     return ul.children.length ? ul : null;
   }
   async function updateBox() {
-    let u; try { u = await chrome.storage.local.get(['updAvail', 'updNotes', 'updSnooze', 'updApproved', 'updErr', 'justUpdated']); } catch (e) { return; }
-    const box = $('u'), show = (cls, title) => { box.className = 'u' + (cls ? ' ' + cls : ''); box.style.display = 'block'; box.textContent = ''; const b = document.createElement('b'); b.textContent = title; box.appendChild(b); return box; };
-    if (u.justUpdated && Date.now() - u.justUpdated.t < 30 * 60000) {   // the new version has just started
-      justUpd = u.justUpdated; updShown = 'just';
-      show('ok', `Updated to v${justUpd.to} ✓`);
-      const l = notesList(justUpd.notes); if (l) box.appendChild(l);
-      const d = document.createElement('div'); d.textContent = 'Your saved files are brought up to date with this version (names, folders and changed files).'; box.appendChild(d);
-      try { chrome.storage.local.remove('justUpdated'); } catch (e) {}
-      return;
-    }
-    const v = u.updAvail;
-    if (!v || updShown === 'just') { if (!v && updShown !== 'just') box.style.display = 'none'; return; }
-    if (u.updApproved === v) {
-      updAsk = false; updShown = v + 'ok';
-      show('', u.updErr ? `Could not install v${v}` : `Installing v${v}…`);
-      const d = document.createElement('div');
-      d.textContent = u.updErr ? `${u.updErr}. Run Setup.bat from the latest download once.` : 'It installs as soon as the current download is finished; this page then refreshes by itself.';
-      box.appendChild(d); return;
-    }
-    if (u.updSnooze && u.updSnooze.v === v && Date.now() < u.updSnooze.until) return;   // "Later" was pressed recently
-    if (updShown === v) return;
-    updShown = v; updAsk = true; stopCloseIfAsk();
-    show('', `New version v${v} is available`);
-    const l = notesList(u.updNotes); if (l) box.appendChild(l);
-    const d = document.createElement('div'); d.textContent = 'Do you want to update now? Your saved files are updated to the new version too.'; box.appendChild(d);
-    const yes = document.createElement('button'); yes.className = 'go'; yes.textContent = 'Update now';
-    const later = document.createElement('button'); later.className = 'no'; later.textContent = 'Later';
-    box.append(yes, later);
-    yes.onclick = async () => { updAsk = false; await send({ cmd: 'updateNow' }); updShown = ''; await updateBox(); if (closePending) armClose(6000); };
-    later.onclick = async () => { updAsk = false; await send({ cmd: 'updateLater' }); box.style.display = 'none'; if (closePending) armClose(1500); };
+    let u; try { u = await chrome.storage.local.get(['justUpdated']); } catch (e) { return; }
+    if (!u.justUpdated || Date.now() - u.justUpdated.t >= 30 * 60000) return;
+    justUpd = u.justUpdated;
+    const box = $('u'); box.className = 'u ok'; box.style.display = 'block'; box.textContent = '';
+    const b = document.createElement('b'); b.textContent = `Updated to v${justUpd.to} ✓`; box.appendChild(b);
+    const l = notesList(justUpd.notes); if (l) box.appendChild(l);
+    const d = document.createElement('div'); d.textContent = 'Your saved files are brought up to date with this version (names, folders and changed files).'; box.appendChild(d);
+    try { chrome.storage.local.remove('justUpdated'); } catch (e) {}
   }
-  const stopCloseIfAsk = () => { if (updAsk) clearTimeout(closeT); };
 
   // ---------- The portal page looks different: say so clearly and let the person report it ----------
   function pageInfo() {   // technical facts only (no names, no course titles, no personal data)
@@ -476,7 +459,7 @@
     const g = $('g'); g.style.display = 'block';
     g.innerHTML = '<b>The AIUB portal page may have changed</b><br>' + what + '<br>Press <b>Report problem</b> so the extension can be fixed (only technical details are sent, no personal data).<br>';
     const b = document.createElement('button'); b.className = 'go'; b.textContent = 'Report problem';
-    b.onclick = () => window.open(`https://github.com/${CFG.UPDATE_REPO}/issues/new?title=${encodeURIComponent('Portal page changed: ' + what.replace(/<[^>]+>/g, '').slice(0, 60))}&body=${encodeURIComponent('What happened: ' + what.replace(/<[^>]+>/g, '') + '\n\nDetails: ' + pageInfo())}`, '_blank', 'noopener');
+    b.onclick = () => window.open(`https://github.com/${CFG.REPO}/issues/new?title=${encodeURIComponent('Portal page changed: ' + what.replace(/<[^>]+>/g, '').slice(0, 60))}&body=${encodeURIComponent('What happened: ' + what.replace(/<[^>]+>/g, '') + '\n\nDetails: ' + pageInfo())}`, '_blank', 'noopener');
     g.appendChild(b);
     stopClose();
   }
@@ -510,7 +493,7 @@
     msg('No internet connection. Nothing was changed. Connect and press Retry.', '#c0392b');
     $('rt').style.display = 'block'; $('ch').style.display = 'block';
   }
-  const fpath = (c, dir) => dir ? `${c.folder}/${dir}` : c.folder;   // Desktop/AIUB/<Course>[/<Teams sub-folder>]
+  const fpath = (c, dir) => dir ? `${c.folder}/${dir}` : c.folder;   // AIUB/<Course>[/<Teams sub-folder>]
   async function runCourses(courses, semTag) {   // one run at a time across all portal tabs
     lastCourses = courses; lastSem = semTag || null;
     const lk = await send({ cmd: 'lock' });
@@ -523,7 +506,6 @@
   }
   async function runCoursesInner(courses, semTag) {
     lastCourses = courses; lastSem = semTag || null;
-    send({ cmd: 'checkUpdate' }).then(() => updateBox());   // looks for a newer version on GitHub; the person decides (never installed during a run)
     stopClose();
     Object.assign(S, { a: 0, f: 0, d: 0, k: 0, e: 0, n: 0, r: 0, t: 0, dup: 0, x: 0, old: 0 });
     $('cs').innerHTML = ''; $('rt').style.display = 'none'; $('ch').style.display = 'block'; $('g').style.display = 'none'; msg(''); setProg(true);
@@ -533,7 +515,7 @@
     sub(`${plural(courses.length, 'active course')} · checking files…`);
     courses.forEach(c => { c.folder = limitName(sanitize(c.title.replace(/^\d+\s*-\s*/, '')), CFG.FOLDER_MAX) + (c.dropped ? ' (Dropped)' : ''); });
 
-    // portal scan, Teams lookup and Desktop-folder listing all run at the same time
+    // portal scan, Teams lookup and AIUB-folder listing all run at the same time
     const scanP = Promise.all(courses.map(c => scanL(async () => {
       setBd(c, 'Checking…', 'w'); c.scanErr = '';
       try { c.portal = (await getFiles(c)).map(f => ({ ...f, name: limitName(f.name, CFG.NAME_MAX), dir: '' })); }
@@ -542,7 +524,8 @@
     const teamsReq = send({ cmd: 'teams', courses: courses.map(c => c.title), semTag: lastSem });
     const haveMap = await getHave(courses.map(c => c.folder));
     await scanP;
-    const helper = !!haveMap;
+    const helper = true;   // files always go into the chosen AIUB folder
+    $('fd').style.display = 'block'; $('fd').title = 'Now: ' + Disk.label() + ' (press to save somewhere else)';
     if (courses.every(c => c.scanErr === 'No internet')) { offline(); return; }
     sub('Checking Teams…');
     const teams = await resolveTeams(teamsReq, courses);
@@ -572,7 +555,7 @@
       c.items.forEach(it => { if (!c.groups.has(it.dir)) c.groups.set(it.dir, []); c.groups.get(it.dir).push(it); });
       c.groups.forEach((_, dir) => { if (dir) dirs.add(fpath(c, dir)); });
     }));
-    if (helper && dirs.size) { const r = await send({ cmd: 'listall', folders: [...dirs] }); if (r && r.ok) Object.assign(haveMap, r.map); }
+    if (helper && dirs.size) Object.assign(haveMap, await Disk.listAll([...dirs]));
 
     // where were these files saved before? (an older version may have used other names or folders)
     const idx = helper ? await loadIndex() : {}, stamp = new Date().toISOString().slice(0, 10);
@@ -580,7 +563,7 @@
       const extra = new Set();
       const look = ids => ids.forEach(id => { const r = idx[id]; if (r && r.p) { const d = AIUB.splitP(r.p)[0]; if (d && !(d in haveMap)) extra.add(d); } });
       courses.forEach(c => { (c.items || []).forEach(f => look(AIUB.idsOf(f))); (c.superseded || []).forEach(z => look(z.ids)); });
-      if (extra.size) { const r = await send({ cmd: 'listx', folders: [...extra] }); if (r && r.ok) Object.assign(haveMap, r.map); }
+      if (extra.size) Object.assign(haveMap, await Disk.listX([...extra]));
     }
 
     await Promise.all(courses.map(async c => {
@@ -589,13 +572,7 @@
       const groups = [];
       for (const [dir, items] of c.groups) {
         const folder = fpath(c, dir);
-        if (helper) { AIUB.prepareGroup(items, CFG.NUMBERING); groups.push({ folder, items }); }   // 01 - , 02 - ... in content order
-        else {   // no helper: Chrome Downloads fallback, no numbering
-          for (const f of items) {
-            const r = await send({ cmd: 'has', folder, name: f.name });
-            if (r && r.have) S.k++; else c.todo.push({ ...f, folder });
-          }
-        }
+        AIUB.prepareGroup(items, CFG.NUMBERING); groups.push({ folder, items });   // 01 - , 02 - ... in content order
       }
       if (helper) {
         // every file: already there (maybe under an old name / in an old folder) -> renamed or moved; edited online -> fetched again; missing -> downloaded
@@ -604,7 +581,7 @@
         S.k += plan.kept.length + plan.moves.filter(m => !m.archive).length;
         const blocked = new Set();
         if (plan.moves.length) {
-          const r = await send({ cmd: 'move', pairs: plan.moves.map(m => ({ f: m.f, t: m.t })) });
+          let r; try { r = await Disk.moveAll(plan.moves.map(m => ({ f: m.f, t: m.t }))); } catch (e) { r = { ok: false, done: [] }; }
           const done = new Set((r && r.ok && r.done) || []);
           plan.moves.forEach((m, i) => {
             if (m.archive) { if (done.has(i)) S.old++; else blocked.add(m.f.toLowerCase()); return; }   // could not set the old copy aside: do not overwrite it now
@@ -629,12 +606,15 @@
     // download: all courses at once, CFG.DL_PARALLEL files at a time
     setProg(false);
     if (S.n) sub(`Downloading ${plural(S.n, 'new file')}…`);
+    const fetchOne = f => Disk.save({ url: f.url, folder: f.folder, name: f.name, zip: f.zip });
+    let sinceSave = 0;   // the index is saved now and then, so a closed page loses nothing
+    const remembered = (f, r) => { remember(idx, AIUB.idsOf(f), AIUB.joinP(f.folder, (r && r.name) || f.name), f.sig); if (++sinceSave >= 10) { sinceSave = 0; saveIndex(idx); } };
     await Promise.all(courses.map(async c => {
       if (!c.todo.length) return;
       c.bar.style.display = 'block'; prog(c);
       await Promise.all(c.todo.map(f => dlL(async () => {
-        const r = await Promise.race([send({ cmd: helper ? 'save' : 'dl', url: f.url, folder: f.folder, name: f.name, zip: f.zip }), sleep(20 * 60000).then(() => ({ status: 'fail', err: 'no answer from the extension (press Retry)' }))]);
-        if (r && (r.status === 'done' || r.status === 'skip')) { c.ok++; S.d++; if (f.src === 'teams') S.t++; if (helper) remember(idx, AIUB.idsOf(f), AIUB.joinP(f.folder, f.name), f.sig); }
+        const r = await Promise.race([fetchOne(f), sleep(20 * 60000).then(() => ({ status: 'fail', err: 'no answer from the extension (press Retry)' }))]);
+        if (r && (r.status === 'done' || r.status === 'skip')) { c.ok++; S.d++; if (f.src === 'teams') S.t++; if (helper) remembered(f, r); }
         else { c.bad++; S.e++; c.lastErr = (r && r.err) || 'failed'; (c.failedList = c.failedList || []).push(f); }
         prog(c); setProg(false);
         sub(`Downloading… ${S.d + S.e} of ${S.n}`);
@@ -646,8 +626,8 @@
         const retryL = limiter(2);
         await Promise.all(again.map(f => retryL(async () => {
           await sleep(1500);
-          const r = await send({ cmd: helper ? 'save' : 'dl', url: f.url, folder: f.folder, name: f.name, zip: f.zip });
-          if (r && (r.status === 'done' || r.status === 'skip')) { c.bad--; c.ok++; S.e--; S.d++; if (f.src === 'teams') S.t++; if (helper) remember(idx, AIUB.idsOf(f), AIUB.joinP(f.folder, f.name), f.sig); prog(c); }
+          const r = await fetchOne(f);
+          if (r && (r.status === 'done' || r.status === 'skip')) { c.bad--; c.ok++; S.e--; S.d++; if (f.src === 'teams') S.t++; if (helper) remembered(f, r); prog(c); }
         })));
       }
       if (c.bad) { setBd(c, `${c.bad} failed`, 'fl'); c.er.textContent = c.lastErr; c.er.style.display = 'block'; }
@@ -663,7 +643,7 @@
       sub(S.e ? 'Some files failed' : 'Some courses were not checked');
       msg(`${S.d} saved${S.e ? `, ${S.e} failed` : ''}${S.x ? `, ${plural(S.x, 'course')} not checked` : ''}. Check your internet, then press Retry.${note}`, '#c0392b'); $('rt').style.display = 'block'; $('ch').style.display = 'block';
     } else {
-      sub(helper ? 'Saved in Desktop → AIUB' : 'Saved in Downloads → AIUB');
+      sub(`Saved in ${Disk.label()}`);
       const fromTeams = S.t ? ` (${S.t} from Teams)` : '';
       msg((S.d ? `All done! ${plural(S.d, 'new file')} saved${fromTeams} ✓` : 'All files are up to date ✓') + note, '#13703a');
       $('ch').style.display = 'block';
