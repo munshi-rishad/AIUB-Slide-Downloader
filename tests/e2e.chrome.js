@@ -32,7 +32,7 @@ function setWeb() {
   // Teams: the same Lecture 2 (same size: merged), a Lab folder with one file
   W.teams = {
     '/sites/msteams_dm/Shared Documents': { files: [{ name: 'Lecture 2.pdf', uid: 'u-l2', blob: W.blobs['/files/dm/l2'], t: '2026-10-05T03:00:00Z' }], folders: ['Lab'] },
-    '/sites/msteams_dm/Shared Documents/Lab': { files: [{ name: 'Lab 1.pdf', uid: 'u-lab1', blob: body('lab1', 9000), t: '2026-10-07T03:00:00Z' }], folders: [] },
+    '/sites/msteams_dm/Shared Documents/Lab': { files: [{ name: 'Lab 1.pdf', uid: 'u-lab1', blob: body('lab1', 9000), t: '2026-10-07T03:00:00Z' }, { name: 'free-tool.exe', uid: 'u-exe', blob: body('MZ', 4000), t: '2026-10-08T03:00:00Z' }], folders: [] },   // a program file someone uploaded: must never be saved
   };
 }
 const dash = () => `<!doctype html><html><body><div>Welcome RISHAD, NAJIAT ISLAM</div>
@@ -126,9 +126,10 @@ const noJunk = tr => { for (const [k, v] of Object.entries(tr)) { assert(!/\(1\)
     });
     await chooseFolder(pg);
     let first;
-    await t('first run: every file saved, numbered in course order, tagged, zip unpacked, portal+Teams copy saved once', async () => {
+    await t('first run: every file saved, numbered in course order, tagged, zip unpacked, portal+Teams copy saved once, the .exe skipped', async () => {
       const s = await run(pg); first = await tree(pg); noJunk(first);
       assert(/All done/.test(s.m), JSON.stringify(s));
+      assert(s.cards.some(c => /1 program file skipped for safety/.test(c)), JSON.stringify(s.cards));
       assert.deepStrictEqual(names(first), [
         'DATA MINING [B]/01 - COURSE OUTLINE (PORTAL).PDF', 'DATA MINING [B]/02 - LECTURE 1 (PORTAL).PDF', 'DATA MINING [B]/03 - LECTURE 2 (PORTAL+TEAMS).PDF', 'DATA MINING [B]/04 - LECTURE 4 (PORTAL).PDF',
         'DATA MINING [B]/Lab/01 - LAB 1 (TEAMS).PDF',

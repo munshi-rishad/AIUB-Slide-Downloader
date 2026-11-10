@@ -157,4 +157,8 @@ t('two online files never claim the same local file', () => {
   const r = A.reconcile(g, { C: ['01 - A (PORTAL).PDF'] }, {}, {});
   assert.strictEqual(r.kept.length + r.moves.length, 1); assert.strictEqual(r.todo.length, 1);
 });
+t('program files are never saved, course files are', () => {
+  for (const n of ['setup.exe', 'RUN.BAT', 'x.ps1', 'link.lnk', 'tool.msi', 'a.jar']) assert(A.isBlocked(n), n);
+  for (const n of ['Lecture 1.pdf', 'Lab.pptx', 'main.cpp', 'app.js', 'data.csv', 'notes', 'exe notes.pdf']) assert(!A.isBlocked(n), n);
+});
 console.log(`\n${n} tests passed`);

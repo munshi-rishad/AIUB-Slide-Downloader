@@ -28,6 +28,8 @@
     UNZIP: true,                                 // zip files are unpacked: their contents are saved (and numbered) as normal files
     SOURCE_TAG: true,                            // add "(Portal)" / "(Teams)" at the end of every file name
     DL_PARALLEL: 6,                              // files downloaded at the same time
+    // program and script files are never saved, even if someone uploads one to a Teams class (safety: nothing that can run by a double-click)
+    BLOCKED_EXT: ['exe', 'msi', 'msix', 'appx', 'bat', 'cmd', 'com', 'scr', 'pif', 'cpl', 'ps1', 'psm1', 'vbs', 'vbe', 'jse', 'wsf', 'wsh', 'hta', 'lnk', 'url', 'reg', 'dll', 'sys', 'inf', 'msc', 'jar', 'application', 'appref-ms', 'gadget', 'scf', 'iso', 'img', 'vhd', 'vhdx'],
   };
 
   // is version a ("10.1") newer than b ("9.9")?
@@ -42,6 +44,7 @@
   const sanitize = s => s.replace(/[<>:"\/\\|?*\x00-\x1f]/g, '').replace(/\s+/g, ' ').trim().replace(/[. ]+$/, '');
   const hasExt = n => /\.[A-Za-z0-9]{1,6}$/.test(n);
   const extOf = n => { const m = n.match(/\.([A-Za-z0-9]{1,6})$/); return m ? m[1].toLowerCase() : ''; };
+  const isBlocked = n => { const m = String(n).match(/\.([A-Za-z0-9-]{1,12})\s*$/); return !!m && CFG.BLOCKED_EXT.includes(m[1].toLowerCase()); };   // "setup.EXE" -> true
   const limitName = (n, max) => {
     if (n.length <= max) return n;
     const m = n.match(/(\.[A-Za-z0-9]{1,6})$/), ext = m ? m[1] : '';
@@ -296,6 +299,6 @@
     return out;
   }
 
-  const AIUB = { CFG, versionNewer, idsOf, joinP, splitP, oldPath, reconcile, sanitize, hasExt, extOf, limitName, natural, strip, parsePortalDate, parsePortalSize, normName, similarity, sizeRelation, sameFile, mergeSources, prepareGroup, compose, withTag, srcTag, catOf, seriesOf, findLocal, teamsDir, courseCore, courseTags, semTagOfTitle, semTagFromOption, semRank, matchCourse };
+  const AIUB = { CFG, isBlocked, versionNewer, idsOf, joinP, splitP, oldPath, reconcile, sanitize, hasExt, extOf, limitName, natural, strip, parsePortalDate, parsePortalSize, normName, similarity, sizeRelation, sameFile, mergeSources, prepareGroup, compose, withTag, srcTag, catOf, seriesOf, findLocal, teamsDir, courseCore, courseTags, semTagOfTitle, semTagFromOption, semRank, matchCourse };
   if (typeof module !== 'undefined' && module.exports) module.exports = AIUB; else root.AIUB = AIUB;
 })(typeof self !== 'undefined' ? self : globalThis);

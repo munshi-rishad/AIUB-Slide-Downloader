@@ -174,6 +174,7 @@
         if (m.op === 'head') {   // the server answered: now the final name is known (an extension may be added)
           dir = await dirAt(segs(folder).length ? segs(folder) : ['file'], true);
           final = safe(name + (m.ext || ''));
+          if (self.AIUB && AIUB.isBlocked(final)) return fail('program files are not saved (safety)');
           created = !(await fileIn(dir, final));
           fh = await dir.getFileHandle(final, { create: true });
           w = await fh.createWritable();   // Chrome writes into a temporary file and swaps it in on close(): never a half file under the real name

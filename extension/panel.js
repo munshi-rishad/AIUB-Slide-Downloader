@@ -546,9 +546,11 @@
         unz = parts.filter((x, i) => x.length !== 1 || x[0] !== merged.items[i]).length; zfail = parts.reduce((n, x, i) => n + (/\.zip$/i.test(merged.items[i].name) && x.length === 1 && x[0] === merged.items[i] ? 1 : 0), 0);
         if (unz) { const m2 = AIUB.mergeSources(list); list = m2.items; dups += m2.dups; }
       }
+      const blockedN = list.filter(it => AIUB.isBlocked(it.name)).length;   // program files (.exe, .bat …) are never saved
+      if (blockedN) list = list.filter(it => !AIUB.isBlocked(it.name));
       c.items = list; S.dup += dups;
       const terr = sites.map(x => x.err).filter(Boolean)[0];
-      c.info.textContent = `Portal ${c.portal.length}` + (teams.note ? '' : ` · Teams ${tItems.length}`) + (unz ? ` · ${plural(unz, 'zip')} unpacked` : '') + (zfail ? ` · ${plural(zfail, 'zip')} kept as .zip` : '') + (dups ? ` · ${dups} duplicate${dups === 1 ? '' : 's'} merged` : '') + (big ? ` · ${big} large file${big === 1 ? '' : 's'} skipped (over ${CFG.MAX_FILE_MB} MB)` : '') + (terr ? ` · Teams error: ${terr}` : '') + (!sites.length && !teams.note ? ' · no Teams class matched' : '');
+      c.info.textContent = `Portal ${c.portal.length}` + (teams.note ? '' : ` · Teams ${tItems.length}`) + (unz ? ` · ${plural(unz, 'zip')} unpacked` : '') + (zfail ? ` · ${plural(zfail, 'zip')} kept as .zip` : '') + (dups ? ` · ${dups} duplicate${dups === 1 ? '' : 's'} merged` : '') + (big ? ` · ${big} large file${big === 1 ? '' : 's'} skipped (over ${CFG.MAX_FILE_MB} MB)` : '') + (blockedN ? ` · ${blockedN} program file${blockedN === 1 ? '' : 's'} skipped for safety` : '') + (terr ? ` · Teams error: ${terr}` : '') + (!sites.length && !teams.note ? ' · no Teams class matched' : '');
       if (teams.unmatched && teams.unmatched.length) c.info.title = 'Teams classes that matched no course: ' + teams.unmatched.join('; ');
       c.partial = !!teams.partial || !!terr || !!c.zipLost;   // incomplete data: do not renumber anything this time
       c.groups = new Map();
