@@ -1,6 +1,6 @@
 # Privacy policy - AIUB Slide Downloader
 
-_Host this text on a public page (for example GitHub Pages) and paste its link in the Web Store "Privacy" tab._
+_Last updated: 11 November 2026_
 
 **What the extension handles:** the names of your courses and course files on portal.aiub.edu and your AIUB Teams SharePoint sites, and a list of files it already saved (name, folder, size/date marker).
 
