@@ -16,6 +16,6 @@ _Host this text on a public page (for example GitHub Pages) and paste its link i
 
 **Remove your data:** remove the extension, or clear its data in chrome://extensions. Downloaded files stay in your folder until you delete them.
 
-**Contact:** reshad.munshi2006@gmail.com
+**Contact:** reshad.munshi2004@gmail.com
 
 This extension is unofficial and is not affiliated with AIUB or Microsoft.
